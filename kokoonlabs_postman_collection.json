@@ -1,0 +1,1238 @@
+{
+	"info": {
+		"_postman_id": "kokoonlabs-backend-collection-v1",
+		"name": "Kokoonlabs Backend API",
+		"description": "Complete Postman collection for Kokoonlabs Backend API featuring all public and private endpoints.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000/api/v1",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "System",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Public Auth",
+			"item": [
+				{
+					"name": "Send OTP Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": {\n    \"number\": \"9876543210\",\n    \"code\": \"+91\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/auth/send-otp-login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"auth",
+								"send-otp-login"
+							]
+						}
+					}
+				},
+				{
+					"name": "Login with OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": {\n    \"number\": \"9876543210\",\n    \"code\": \"+91\"\n  },\n  \"otp\": \"1234\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/auth/login-otp",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"auth",
+								"login-otp"
+							]
+						}
+					}
+				},
+				{
+					"name": "Send OTP Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": {\n    \"number\": \"9876543210\",\n    \"code\": \"+91\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/auth/send-otp-register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"auth",
+								"send-otp-register"
+							]
+						}
+					}
+				},
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\"\n  },\n  \"phone\": {\n    \"number\": \"9876543210\",\n    \"code\": \"+91\"\n  },\n  \"password\": \"password123\",\n  \"otp\": \"1234\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"auth",
+								"register"
+							]
+						}
+					}
+				},
+				{
+					"name": "Login with Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": {\n    \"number\": \"9876543210\",\n    \"code\": \"+91\"\n  },\n  \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/auth/login-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"auth",
+								"login-password"
+							]
+						}
+					}
+				},
+				{
+					"name": "Login with Google",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"google_id_token\": \"YOUR_GOOGLE_ID_TOKEN\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/auth/login-google",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"auth",
+								"login-google"
+							]
+						}
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"YOUR_REFRESH_TOKEN_HERE\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/auth/refresh-token",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"auth",
+								"refresh-token"
+							]
+						}
+					}
+				},
+				{
+					"name": "Send OTP Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": {\n    \"number\": \"9876543210\",\n    \"code\": \"+91\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/auth/send-otp-reset-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"auth",
+								"send-otp-reset-password"
+							]
+						}
+					}
+				},
+				{
+					"name": "Reset Password with OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": {\n    \"number\": \"9876543210\",\n    \"code\": \"+91\"\n  },\n  \"otp\": \"1234\",\n  \"newPassword\": \"newPassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/auth/reset-password-otp",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"auth",
+								"reset-password-otp"
+							]
+						}
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/auth/logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"auth",
+								"logout"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Public Kits",
+			"item": [
+				{
+					"name": "List Kits",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/kits?page=1&per_page=10&search=&category=&sort=-createdAt",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"kits"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "per_page",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": ""
+								},
+								{
+									"key": "category",
+									"value": ""
+								},
+								{
+									"key": "sort",
+									"value": "-createdAt"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Kit by Slug",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/kits/sample-kit-slug",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"kits",
+								"sample-kit-slug"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Public Cart",
+			"item": [
+				{
+					"name": "Get Cart",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/cart",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"cart"
+							]
+						}
+					}
+				},
+				{
+					"name": "Add Cart Item",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"650c1f1e1c9d440000000001\",\n  \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/cart/add-item",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"cart",
+								"add-item"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Cart Item",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"650c1f1e1c9d440000000001\",\n  \"quantity\": 2\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/cart/update-item",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"cart",
+								"update-item"
+							]
+						}
+					}
+				},
+				{
+					"name": "Remove Cart Item",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"650c1f1e1c9d440000000001\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/cart/remove-item",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"cart",
+								"remove-item"
+							]
+						}
+					}
+				},
+				{
+					"name": "Clear Cart",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/cart/clear",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"cart",
+								"clear"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Public Orders",
+			"item": [
+				{
+					"name": "Create Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"items\": [\n    {\n      \"productId\": \"650c1f1e1c9d440000000001\",\n      \"quantity\": 1\n    }\n  ],\n  \"shippingAddress\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"Bengaluru\",\n    \"state\": \"Karnataka\",\n    \"postalCode\": \"560001\",\n    \"country\": \"India\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/orders/create",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"orders",
+								"create"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Order By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/orders/650c1f1e1c9d440000000002",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"orders",
+								"650c1f1e1c9d440000000002"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Public Tracking",
+			"item": [
+				{
+					"name": "Track Order",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/tracking?order_id=650c1f1e1c9d440000000002",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"tracking"
+							],
+							"query": [
+								{
+									"key": "order_id",
+									"value": "650c1f1e1c9d440000000002"
+								},
+								{
+									"key": "tracking_number",
+									"value": "TRK123456789",
+									"disabled": true
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "User Profile (Me)",
+			"item": [
+				{
+					"name": "Get Profile (Me)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"me"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe\",\n  \"phone\": {\n    \"number\": \"9876543210\",\n    \"code\": \"+91\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/me/update-profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"me",
+								"update-profile"
+							]
+						}
+					}
+				},
+				{
+					"name": "Link Google Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"google_id_token\": \"YOUR_GOOGLE_ID_TOKEN\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/me/link-google",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"me",
+								"link-google"
+							]
+						}
+					}
+				},
+				{
+					"name": "Unlink Google Account",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/me/unlink-google",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"me",
+								"unlink-google"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get My Orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/me/orders?page=1&per_page=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"me",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "per_page",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get My Addresses",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/me/addresses",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"me",
+								"addresses"
+							]
+						}
+					}
+				},
+				{
+					"name": "Add Address",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"street\": \"123 Main St\",\n  \"city\": \"Bengaluru\",\n  \"state\": \"Karnataka\",\n  \"postalCode\": \"560001\",\n  \"country\": \"India\",\n  \"isDefault\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/me/add-address",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"me",
+								"add-address"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Address",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"addressId\": \"650c1f1e1c9d440000000003\",\n  \"street\": \"456 Side St\",\n  \"city\": \"Bengaluru\",\n  \"state\": \"Karnataka\",\n  \"postalCode\": \"560001\",\n  \"country\": \"India\",\n  \"isDefault\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/me/update-address",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"me",
+								"update-address"
+							]
+						}
+					}
+				},
+				{
+					"name": "Remove Address",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"addressId\": \"650c1f1e1c9d440000000003\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/public/me/remove-address",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"public",
+								"me",
+								"remove-address"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Private Admin Products",
+			"item": [
+				{
+					"name": "List Products (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/private/products?page=1&per_page=10&search=&category=&status=",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"private",
+								"products"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "per_page",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": ""
+								},
+								{
+									"key": "category",
+									"value": ""
+								},
+								{
+									"key": "status",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Starter Robotics Kit\",\n  \"description\": \"Comprehensive robotics kit for beginners\",\n  \"price\": 2999,\n  \"stock\": 100,\n  \"category\": \"Kits\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/private/products/create",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"private",
+								"products",
+								"create"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Product By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/private/products/650c1f1e1c9d440000000001",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"private",
+								"products",
+								"650c1f1e1c9d440000000001"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Starter Kit\",\n  \"price\": 2799\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/private/products/650c1f1e1c9d440000000001/update",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"private",
+								"products",
+								"650c1f1e1c9d440000000001",
+								"update"
+							]
+						}
+					}
+				},
+				{
+					"name": "Publish Product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/private/products/650c1f1e1c9d440000000001/publish",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"private",
+								"products",
+								"650c1f1e1c9d440000000001",
+								"publish"
+							]
+						}
+					}
+				},
+				{
+					"name": "Unpublish Product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/private/products/650c1f1e1c9d440000000001/unpublish",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"private",
+								"products",
+								"650c1f1e1c9d440000000001",
+								"unpublish"
+							]
+						}
+					}
+				},
+				{
+					"name": "Archive Product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/private/products/650c1f1e1c9d440000000001/archive",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"private",
+								"products",
+								"650c1f1e1c9d440000000001",
+								"archive"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Private Admin Users",
+			"item": [
+				{
+					"name": "List Users (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/private/users?page=1&per_page=10&search=&role=&status=",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"private",
+								"users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "per_page",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": ""
+								},
+								{
+									"key": "role",
+									"value": ""
+								},
+								{
+									"key": "status",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/private/users/650c1f1e1c9d440000000004",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"private",
+								"users",
+								"650c1f1e1c9d440000000004"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update User Role",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"admin\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/private/users/650c1f1e1c9d440000000004/update-role",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"private",
+								"users",
+								"650c1f1e1c9d440000000004",
+								"update-role"
+							]
+						}
+					}
+				},
+				{
+					"name": "Block User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/private/users/650c1f1e1c9d440000000004/block",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"private",
+								"users",
+								"650c1f1e1c9d440000000004",
+								"block"
+							]
+						}
+					}
+				},
+				{
+					"name": "Unblock User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/private/users/650c1f1e1c9d440000000004/unblock",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"private",
+								"users",
+								"650c1f1e1c9d440000000004",
+								"unblock"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete User (Super Admin)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/private/users/650c1f1e1c9d440000000004/delete",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"private",
+								"users",
+								"650c1f1e1c9d440000000004",
+								"delete"
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}
