@@ -37,7 +37,7 @@ export class BlockDao {
     pagination: pagination;
   }> {
     const page = options.page || 1;
-    const limit = options.limit || 20;
+    const limit = options.limit || 0;
     const skip = options.skip !== undefined ? options.skip : (page - 1) * limit;
     const sort = options.sort || { createdAt: -1 };
 
