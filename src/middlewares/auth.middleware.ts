@@ -15,13 +15,7 @@ export const isAuthenticated = asyncHandler(
     const accessToken = req.cookies.accessToken as string;
     const incomingRefreshToken = req.cookies.refreshToken as string;
     if (!accessToken || !incomingRefreshToken) {
-      return ResponseHandler.success(
-        {
-          user: null,
-          errorCode: ERROR_CODES.INVALID_TOKEN.errorCode
-        },
-        ERROR_CODES.INVALID_TOKEN.message
-      ).send(res);
+      return next(new ErrorHandler(ERROR_CODES.INVALID_TOKEN));
     }
 
     let decoded: IUser;
@@ -122,14 +116,22 @@ export const optionalAuthentication = asyncHandler(
         return next();
       }
       const userData = JSON.parse(user) as IUser;
-      const { refreshToken, ...userDataWithoutToken } = userData;
+      const { refreshToken, password, ...userDataWithoutToken } = userData;
 
       const isValid = await bcrypt.compare(
         incomingRefreshToken,
         refreshToken as string
       );
 
-      if (!isValid) {
+      // Same checks as isAuthenticated: a stolen cookie from another device,
+      // or a blocked / deleted / inactive account, is treated as logged out.
+      if (
+        !isValid ||
+        userData.deviceInfo?.userAgent !== req.headers['user-agent'] ||
+        userData.isActive === false ||
+        userData.role === UserRole.BLOCKED ||
+        userData.role === UserRole.DELETED
+      ) {
         return next();
       }
 

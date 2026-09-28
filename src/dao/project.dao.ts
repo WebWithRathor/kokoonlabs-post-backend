@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import ProjectModel from '../models/project.model';
 import { IProject, pagination } from '../interfaces';
+import { searchRegex } from '../utils/regex';
 
 export class ProjectDao {
   async create(data: Partial<IProject>): Promise<IProject> {
@@ -37,10 +38,10 @@ export class ProjectDao {
     const queryFilter: Record<string, any> = { ...filter };
 
     if (queryFilter.search) {
-      const searchRegex = new RegExp(queryFilter.search, 'i');
+      const regex = searchRegex(queryFilter.search);
       queryFilter.$or = [
-        { title: searchRegex },
-        { description: searchRegex }
+        { title: regex },
+        { description: regex }
       ];
       delete queryFilter.search;
     }
@@ -74,6 +75,25 @@ export class ProjectDao {
       new: true,
       runValidators: true
     }).exec();
+  }
+
+  // Owner-scoped update: matches only if this user owns the project
+  async updateForUser(
+    userId: string,
+    id: string,
+    data: Partial<IProject>
+  ): Promise<IProject | null> {
+    if (!mongoose.Types.ObjectId.isValid(id)) return null;
+    return await ProjectModel.findOneAndUpdate({ _id: id, userId }, data, {
+      new: true,
+      runValidators: true
+    }).exec();
+  }
+
+  // Owner-scoped delete: matches only if this user owns the project
+  async deleteForUser(userId: string, id: string): Promise<IProject | null> {
+    if (!mongoose.Types.ObjectId.isValid(id)) return null;
+    return await ProjectModel.findOneAndDelete({ _id: id, userId }).exec();
   }
 
   async delete(id: string): Promise<IProject | null> {

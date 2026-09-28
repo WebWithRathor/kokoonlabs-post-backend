@@ -6,12 +6,17 @@ import {
   updateProject,
   deleteProject
 } from '../../controllers/public/project.controller';
-import { optionalAuthentication } from '../../middlewares/auth.middleware';
+import {
+  isAuthenticated,
+  requireRole
+} from '../../middlewares/auth.middleware';
+import { UserRole } from '../../interfaces';
 
 const router = Router();
 
-// Apply optionalAuthentication to populate req.user from session/cookies if present
-router.use(optionalAuthentication);
+// Projects are private to their owner: a valid login is required, and
+// requireRole(STUDENT) also rejects blocked and deleted accounts.
+router.use(isAuthenticated, requireRole(UserRole.STUDENT));
 
 router.post('/', createProject);
 router.get('/', listProjects);

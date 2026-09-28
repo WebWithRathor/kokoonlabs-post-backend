@@ -21,10 +21,10 @@ const connectDB = async () => {
       logger.info('Database Reconnected 🎉');
     });
 
-    // Handle connection error and close the process when connection fails after connecting to the database
+    // Log errors after the first connect. Don't exit: the driver retries and
+    // reconnects on its own, and exiting turned any network blip into downtime.
     mongoose.connection.on('error', (err: unknown) => {
       logger.error('Database Connection Error', { err });
-      process.exit(1);
     });
 
     // Handle disconnection from the database

@@ -1,5 +1,40 @@
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
+import { isAllowedOrigin } from '../utils/origins';
+
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+
+// CSRF guard. Auth cookies are SameSite=None in production, so another site
+// could submit a form that carries them. Browsers always send Origin (or
+// Referer) on cross-site POST/PUT/PATCH/DELETE: reject those from origins
+// not in CORS_ORIGIN. Requests with neither header (server-to-server, curl)
+// are allowed, since they can't carry a victim's browser cookies.
+const csrfOriginGuard = (req: Request, res: Response, next: NextFunction) => {
+  if (SAFE_METHODS.has(req.method)) return next();
+
+  const origin = req.get('origin');
+  let source = origin;
+  if (!source) {
+    const referer = req.get('referer');
+    if (referer) {
+      try {
+        source = new URL(referer).origin;
+      } catch {
+        source = 'invalid';
+      }
+    }
+  }
+
+  if (source && !isAllowedOrigin(source)) {
+    res.status(403).json({
+      success: false,
+      code: 'CSRF_ORIGIN_REJECTED',
+      message: 'Request origin not allowed'
+    });
+    return;
+  }
+  next();
+};
 
 export default function configureAppSecurity(app: express.Application): void {
   // Apply security headers with customized CSP and HSTS
@@ -60,4 +95,6 @@ export default function configureAppSecurity(app: express.Application): void {
       referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
     })
   );
+
+  app.use(csrfOriginGuard);
 }

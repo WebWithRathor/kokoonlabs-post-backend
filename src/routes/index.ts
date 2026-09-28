@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import publicRoutes from './public';
 import privateRoutes from './private';
+import reviewRoutes from './review';
 import ResponseHandler from '../utils/response-handler';
 
 const router = Router();
@@ -14,5 +15,6 @@ router.get('/health', (req, res) => {
 // Namespaced API routes
 router.use('/public', publicRoutes);
 router.use('/private', privateRoutes);
+router.use('/review', reviewRoutes);
 
 export default router;

@@ -15,9 +15,9 @@ const configSchema = z.object({
   msg91TemplateId: z.string().min(1, 'MSG91_TEMPLATE_ID is required'),
   otpExpiryMinutes: z.coerce.number().default(5),
   redisUrl: z.string().min(1).default(''),
-  jwtAccessSecret: z.string().min(1).default('dev-secret-change-me'),
+  jwtAccessSecret: z.string().min(1, 'JWT_ACCESS_SECRET is required'),
   jwtAccessExpiresIn: z.coerce.number().default(60 * 60 * 24 * 7),
-  jwtRefreshSecret: z.string().min(1).default('dev-refresh-change-me'),
+  jwtRefreshSecret: z.string().min(1, 'JWT_REFRESH_SECRET is required'),
   jwtRefreshExpiresIn: z.coerce.number().default(60 * 60 * 24 * 7),
   googleClientId: z.string().min(1, 'GOOGLE_CLIENT_ID is required'),
   cookieAccessMaxAge: z.string().min(1, 'COOKIE_ACCESS_MAX_AGE is required'), // Consider z.coerce.number() if it should be a number

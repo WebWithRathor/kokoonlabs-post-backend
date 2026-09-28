@@ -2,6 +2,19 @@ import ProjectDao from '../../dao/project.dao';
 import { IProject, pagination } from '../../interfaces';
 import ErrorHandler from '../../utils/error-handler';
 
+// Fields a student may set. Anything else in the body (userId, _id,
+// activeNodesCount, timestamps) is ignored, so a project can't be handed
+// to another user or have its counts faked.
+const EDITABLE_FIELDS = ['title', 'description', 'nodes', 'edges', 'code'] as const;
+
+const pickEditable = (data: Partial<IProject> = {}): Partial<IProject> => {
+  const picked: Record<string, unknown> = {};
+  for (const key of EDITABLE_FIELDS) {
+    if (data[key] !== undefined) picked[key] = data[key];
+  }
+  return picked as Partial<IProject>;
+};
+
 export const createProjectService = async (
   userId: string,
   data: Partial<IProject>
@@ -11,7 +24,7 @@ export const createProjectService = async (
   }
 
   const projectData: Partial<IProject> = {
-    ...data,
+    ...pickEditable(data),
     userId,
     title: data.title?.trim() || 'Untitled Project',
     activeNodesCount: Array.isArray(data.nodes) ? data.nodes.length : 0
@@ -68,18 +81,16 @@ export const updateProjectService = async (
     throw new ErrorHandler(404, `Project not found or unauthorized`);
   }
 
-  const updateData: Partial<IProject> = {
-    ...data
-  };
+  const updateData: Partial<IProject> = pickEditable(data);
 
   if (Array.isArray(data.nodes)) {
     updateData.activeNodesCount = data.nodes.length;
   }
-  if (data.title) {
-    updateData.title = data.title.trim();
+  if (typeof data.title === 'string') {
+    updateData.title = data.title.trim() || 'Untitled Project';
   }
 
-  const updated = await ProjectDao.update(id, updateData);
+  const updated = await ProjectDao.updateForUser(userId, id, updateData);
   if (!updated) {
     throw new ErrorHandler(500, 'Failed to update project');
   }
@@ -95,6 +106,6 @@ export const deleteProjectService = async (
     throw new ErrorHandler(404, `Project not found or unauthorized`);
   }
 
-  await ProjectDao.delete(id);
+  await ProjectDao.deleteForUser(userId, id);
   return { success: true, message: 'Project deleted successfully' };
 };

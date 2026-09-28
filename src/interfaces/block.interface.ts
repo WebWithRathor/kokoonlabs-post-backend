@@ -33,6 +33,7 @@ export interface IBlock extends Document {
   fields?: IBlockField[];
   template?: string;
   title?: string;
+  description?: string;
   icon?: string;
   sections?: Record<string, any> | any;
   outputs?: any[];

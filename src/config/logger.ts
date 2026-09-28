@@ -40,7 +40,7 @@ const logger = winston.createLogger({
   level: config.environment === 'development' ? 'debug' : 'info',
   format: productionFormat,
   defaultMeta: {
-    serviceName: 'sheryians-api'
+    serviceName: 'kokoonlabs-api'
   },
   transports: [
     new winston.transports.DailyRotateFile({

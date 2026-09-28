@@ -48,6 +48,19 @@ function isUserNotLoggedInError(err: unknown): boolean {
   );
 }
 
+// Keys whose values must never be written to the error log
+const SENSITIVE_KEY = /pass(word)?|otp|token|secret|authorization|cookie|card|cvv|pin/i;
+
+const redact = (value: unknown, depth = 0): unknown => {
+  if (depth > 5 || value === null || typeof value !== 'object') return value;
+  if (Array.isArray(value)) return value.map(v => redact(v, depth + 1));
+  const out: Record<string, unknown> = {};
+  for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
+    out[key] = SENSITIVE_KEY.test(key) ? '[REDACTED]' : redact(v, depth + 1);
+  }
+  return out;
+};
+
 const errorMiddleware = (
   err: unknown,
   req: Request,
@@ -101,6 +114,9 @@ const errorMiddleware = (
     if (errorHandler.statusCode && errorHandler.statusCode < 500) {
       // Preserve 4xx errors (like 404 "User not found")
       customError = errorHandler;
+      if (errorHandler.errorCode !== 'TEMP_ERROR_CODE') {
+        errorCode = errorHandler.errorCode;
+      }
     } else {
       // For 5xx or unknown errors
       customError =
@@ -123,9 +139,9 @@ const errorMiddleware = (
           statusCode: statusCode,
           url: req.originalUrl,
           method: req.method,
-          requestBody: req.body as object,
+          requestBody: redact(req.body) as object,
           requestParams: req.params as object,
-          requestQuery: req.query,
+          requestQuery: redact(req.query) as object,
           userAgent: req.headers['user-agent'],
           ip: req.ip,
           user: req.user ? req.user._id : undefined

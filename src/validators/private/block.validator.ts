@@ -49,6 +49,14 @@ export const validateCreateBlock = validateChain([
     .isString()
     .withMessage('Title must be a string'),
 
+  body('description')
+    .optional()
+    .isString()
+    .withMessage('Description must be text')
+    .trim()
+    .isLength({ max: 300 })
+    .withMessage('Keep the description under 300 characters'),
+
   body('icon')
     .optional()
     .isString()
@@ -150,6 +158,14 @@ export const validateUpdateBlock = validateChain([
     .optional()
     .isString()
     .withMessage('Title must be a string'),
+
+  body('description')
+    .optional()
+    .isString()
+    .withMessage('Description must be text')
+    .trim()
+    .isLength({ max: 300 })
+    .withMessage('Keep the description under 300 characters'),
 
   body('icon')
     .optional()

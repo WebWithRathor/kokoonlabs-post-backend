@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import BlockModel from '../models/block.model';
 import { IBlock, pagination } from '../interfaces';
+import { searchRegex } from '../utils/regex';
 
 export class BlockDao {
   async create(data: Partial<IBlock>): Promise<IBlock> {
@@ -44,12 +45,12 @@ export class BlockDao {
     const queryFilter: Record<string, any> = { ...filter };
 
     if (queryFilter.search) {
-      const searchRegex = new RegExp(queryFilter.search, 'i');
+      const regex = searchRegex(queryFilter.search);
       queryFilter.$or = [
-        { type: searchRegex },
-        { label: searchRegex },
-        { title: searchRegex },
-        { category: searchRegex }
+        { type: regex },
+        { label: regex },
+        { title: regex },
+        { category: regex }
       ];
       delete queryFilter.search;
     }
@@ -68,8 +69,9 @@ export class BlockDao {
       pagination: {
         currentPage: page,
         total,
-        limit,
-        totalPages: Math.ceil(total / limit)
+        // limit 0 = no limit: everything is on one page
+        limit: limit > 0 ? limit : total,
+        totalPages: limit > 0 ? Math.ceil(total / limit) : total > 0 ? 1 : 0
       }
     };
   }

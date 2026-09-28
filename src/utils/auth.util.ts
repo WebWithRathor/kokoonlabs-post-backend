@@ -10,7 +10,6 @@ import { redis } from './redis';
 import { ERROR_CODES } from '../constants/error-codes';
 
 interface ITokenOptions {
-  expires: Date;
   maxAge: number;
   httpOnly: boolean;
   secure: boolean;
@@ -28,9 +27,11 @@ export const generateUserRedisKey = (userId: unknown) => `KL:${userId}`;
 
 const isProd = config.environment === 'production';
 
+// Express cookie maxAge is in milliseconds; the JWT expiry config is in
+// seconds. (Before: 604800 was read as ms, so cookies died after ~10 min.)
+// No fixed `expires`: Express derives it from maxAge on every response.
 export const accessTokenOptions: ITokenOptions = {
-  expires: new Date(Date.now() + config.jwtAccessExpiresIn),
-  maxAge: config.jwtAccessExpiresIn,
+  maxAge: config.jwtAccessExpiresIn * 1000,
   httpOnly: isProd,
   secure: isProd, // only true in prod
   sameSite: isProd ? 'none' : 'lax', // ✅ use 'lax' in dev
@@ -38,8 +39,7 @@ export const accessTokenOptions: ITokenOptions = {
 };
 
 export const refreshTokenOptions: ITokenOptions = {
-  expires: new Date(Date.now() + config.jwtRefreshExpiresIn),
-  maxAge: config.jwtRefreshExpiresIn,
+  maxAge: config.jwtRefreshExpiresIn * 1000,
   httpOnly: isProd,
   secure: isProd,
   sameSite: isProd ? 'none' : 'lax',

@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import ResponseHandler from '../../utils/response-handler';
 import asyncHandler from '../../utils/async-handler';
+import ErrorHandler from '../../utils/error-handler';
+import { ERROR_CODES } from '../../constants/error-codes';
 import {
   createProjectService,
   listProjectsService,
@@ -9,8 +11,19 @@ import {
   deleteProjectService
 } from '../../services/public/project.service';
 
+// Only the logged-in user from the session. Never trust an id sent by the
+// client (header or body) — that let anyone act as any student.
 const getUserId = (req: Request): string => {
-  return String(req.user?._id || req.headers['x-user-id'] || req.body?.userId || '');
+  if (!req.user?._id) {
+    throw new ErrorHandler(ERROR_CODES.USER_NOT_LOGGED_IN);
+  }
+  return String(req.user._id);
+};
+
+const toPositiveInt = (value: unknown, fallback: number, max?: number): number => {
+  const n = Number.parseInt(String(value), 10);
+  if (!Number.isFinite(n) || n < 1) return fallback;
+  return max ? Math.min(n, max) : n;
 };
 
 export const createProject = asyncHandler(
@@ -24,8 +37,8 @@ export const createProject = asyncHandler(
 export const listProjects = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const userId = getUserId(req);
-    const page = req.query.page ? Number(req.query.page) : 1;
-    const limit = req.query.limit ? Number(req.query.limit) : 50;
+    const page = toPositiveInt(req.query.page, 1);
+    const limit = toPositiveInt(req.query.limit, 50, 100);
     const search = req.query.search ? String(req.query.search) : undefined;
 
     const result = await listProjectsService(userId, { page, limit, search });

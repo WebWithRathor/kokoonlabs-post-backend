@@ -1,10 +1,10 @@
 import express, { Request, Response } from 'express';
 import errorMiddleware from './middlewares/error.middleware';
-import { config } from './config/config';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import compression from 'compression';
 import ResponseHandler from './utils/response-handler';
+import { isAllowedOrigin } from './utils/origins';
 
 import configureAppSecurity from './config/security';
 
@@ -32,10 +32,12 @@ app.use(morgan('tiny'));
 app.use(
   cors({
     origin(requestOrigin: string | undefined, callback) {
-      if (!requestOrigin || config.corsOrigin.indexOf(requestOrigin) !== -1) {
+      if (!requestOrigin || isAllowedOrigin(requestOrigin)) {
         callback(null, true);
       } else {
-        callback(new Error(`Origin ${requestOrigin} not allowed by CORS`));
+        // No CORS headers: the browser blocks the response. Unsafe methods
+        // from this origin are refused with 403 by the CSRF guard.
+        callback(null, false);
       }
     },
     credentials: true

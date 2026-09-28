@@ -48,6 +48,34 @@ const enrolledCourseLinkSchema = new Schema<IEnrolledCourseLink>(
     },
     lastRetryAt: {
       type: Date
+    },
+    isSelfPaced: {
+      type: Boolean,
+      default: false
+    },
+    selfPacedEnabledAt: {
+      type: Date
+    },
+    // Resume learning: the content this user last opened in the course
+    lastViewedContent: {
+      type: {
+        _id: false,
+        contentId: { type: Schema.Types.ObjectId },
+        submoduleId: { type: Schema.Types.ObjectId, ref: 'SubModule' },
+        moduleId: { type: Schema.Types.ObjectId, ref: 'Module' },
+        contentType: { type: String, enum: ['video', 'note', 'mcq'] },
+        title: { type: String },
+        viewedAt: { type: Date }
+      },
+      default: null
+    },
+    lastActivity: {
+      type: Date
+    },
+    // Set when every module of the course is complete
+    completedAt: {
+      type: Date,
+      default: null
     }
   },
   {
@@ -57,6 +85,7 @@ const enrolledCourseLinkSchema = new Schema<IEnrolledCourseLink>(
 
 // Create indexes for frequent query patterns
 enrolledCourseLinkSchema.index({ userId: 1 });
+enrolledCourseLinkSchema.index({ userId: 1, courseId: 1 }); // findByUserAndCourse
 enrolledCourseLinkSchema.index({ courseId: 1 });
 enrolledCourseLinkSchema.index({ batchId: 1 });
 enrolledCourseLinkSchema.index({ status: 1 }); // Index for status queries

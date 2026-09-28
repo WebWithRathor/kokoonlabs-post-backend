@@ -22,6 +22,8 @@ const BlockSchema = new Schema<IBlock>(
     fields: { type: [FieldSchema], default: [] },
     template: { type: String },
     title: { type: String },
+    // Short "what does this block do" text shown to students in the editor
+    description: { type: String, trim: true, maxlength: 300, default: '' },
     icon: { type: String },
     sections: { type: Schema.Types.Mixed },
     outputs: { type: [Schema.Types.Mixed], default: [] },
