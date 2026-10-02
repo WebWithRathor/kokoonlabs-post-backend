@@ -106,7 +106,8 @@ export type NotificationType =
   | 'new_global_challenge'
   | 'project_reviewed'
   | 'level_up'
-  | 'badge_earned';
+  | 'badge_earned'
+  | 'function_block_reviewed';
 
 export type EmailStatus = 'pending' | 'sending' | 'sent' | 'failed' | 'skipped';
 

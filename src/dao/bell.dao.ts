@@ -132,7 +132,14 @@ export class BellDao {
   }
   async listAnnouncements(skip: number, limit: number) {
     const [items, total] = await Promise.all([
-      Announcement.find().select('-readBy').sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      // readCount instead of the (possibly long) readBy list
+      Announcement.aggregate([
+        { $sort: { createdAt: -1, _id: -1 } },
+        { $skip: skip },
+        { $limit: limit },
+        { $addFields: { readCount: { $size: { $ifNull: ['$readBy', []] } } } },
+        { $project: { readBy: 0 } }
+      ]),
       Announcement.countDocuments()
     ]);
     return { items, total };

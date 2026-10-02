@@ -2,14 +2,14 @@ import mongoose, { Schema } from 'mongoose';
 import { INotification, NotificationType } from '../interfaces/lms-rewards.interface';
 
 // Celebrations stay in the bell icon; no email for these
-export const IN_APP_ONLY: NotificationType[] = ['level_up', 'badge_earned'];
+export const IN_APP_ONLY: NotificationType[] = ['level_up', 'badge_earned', 'function_block_reviewed'];
 
 const notificationSchema = new Schema<INotification>(
   {
     user: { type: Schema.Types.ObjectId, ref: 'User', required: [true, 'User reference is required'] },
     type: {
       type: String,
-      enum: ['streak_reminder', 'challenge_unlocked', 'new_global_challenge', 'project_reviewed', 'level_up', 'badge_earned'],
+      enum: ['streak_reminder', 'challenge_unlocked', 'new_global_challenge', 'project_reviewed', 'level_up', 'badge_earned', 'function_block_reviewed'],
       required: [true, 'Notification type is required']
     },
     title: { type: String, required: [true, 'Notification title is required'], trim: true },

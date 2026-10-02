@@ -64,3 +64,15 @@ export const createBadge = asyncHandler(async (req: Request, res: Response): Pro
 export const updateBadge = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   ResponseHandler.success(await Admin.updateBadge(id(req), req.body), 'Badge updated successfully').send(res);
 });
+
+export const getContent = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  ResponseHandler.success(await Admin.getContent(id(req, 'linkId')), 'Content fetched successfully').send(res);
+});
+
+export const listCourses = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
+  ResponseHandler.success(await Admin.listCourses(), 'Courses fetched successfully').send(res);
+});
+
+export const getOverview = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
+  ResponseHandler.success(await Admin.getOverview(), 'Overview fetched successfully').send(res);
+});

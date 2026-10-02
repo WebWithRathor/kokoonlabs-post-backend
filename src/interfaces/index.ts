@@ -9,3 +9,4 @@ export * from './lms-content.interface';
 export * from './lms-progress.interface';
 export * from './lms-rewards.interface';
 export * from './announcement.interface';
+export * from './function-block.interface';

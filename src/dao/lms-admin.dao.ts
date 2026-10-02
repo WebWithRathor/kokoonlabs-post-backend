@@ -7,6 +7,12 @@ import Note from '../models/note.model';
 import MCQ from '../models/mcq.model';
 import Skill from '../models/skill.model';
 import Badge from '../models/badge.model';
+import Submission from '../models/submission.model';
+import Challenge from '../models/challenge.model';
+import UserStats from '../models/user-stats.model';
+import Certificate from '../models/certificate.model';
+import EnrolledCourseLink from '../models/enrollCourseLink.model';
+import { IEnrolledCourseLinkStatus } from '../interfaces/enrolled-course-link.interface';
 import {
   ContentModelName,
   IModule,
@@ -96,6 +102,74 @@ export class LmsAdminDao {
         updateOne: { filter: { _id: u.id }, update: { $set: { totalPoints: u.totalPoints, maxBonusXp: u.maxBonusXp } } }
       }))
     );
+  }
+
+  // ---- Courses (owned by the pre-purchase backend; read-only here)
+  async listCourses() {
+    const courses = await mongoose.connection
+      .collection('courses')
+      .find({}, { projection: { title: 1, slug: 1, courseMode: 1, state: 1, type: 1, 'metaData.thumbnail': 1 } })
+      .sort({ createdAt: -1 })
+      .toArray();
+    const [modules, enrollments] = await Promise.all([
+      Module.aggregate<{ _id: Types.ObjectId; count: number }>([{ $group: { _id: '$course', count: { $sum: 1 } } }]),
+      EnrolledCourseLink.aggregate<{ _id: Types.ObjectId; count: number }>([
+        { $match: { status: IEnrolledCourseLinkStatus.SUCCESS } },
+        { $group: { _id: '$courseId', count: { $sum: 1 } } }
+      ])
+    ]);
+    const countOf = (rows: { _id: Types.ObjectId; count: number }[], id: unknown) =>
+      rows.find(r => String(r._id) === String(id))?.count ?? 0;
+    return courses.map(c => ({
+      _id: c._id,
+      title: c.title,
+      slug: c.slug,
+      courseMode: c.courseMode,
+      state: c.state,
+      type: c.type,
+      thumbnail: c.metaData?.thumbnail ?? null,
+      modules: countOf(modules, c._id),
+      students: countOf(enrollments, c._id)
+    }));
+  }
+
+  // ---- Dashboard counts
+  async overview() {
+    const [
+      pendingReviews, activeChallenges, learners, enrollments, certificates,
+      modules, subModules, contents, oldestPending, topLearners
+    ] = await Promise.all([
+      Submission.countDocuments({ status: 'pending' }),
+      Challenge.countDocuments({ isActive: true }),
+      UserStats.countDocuments(),
+      EnrolledCourseLink.countDocuments({ status: IEnrolledCourseLinkStatus.SUCCESS }),
+      Certificate.countDocuments(),
+      Module.countDocuments({ isActive: true }),
+      SubModule.countDocuments({ isActive: true }),
+      SubmoduleContent.countDocuments({ isActive: true }),
+      Submission.find({ status: 'pending' })
+        .select('challenge user attemptNo createdAt')
+        .populate('challenge', 'title maxXp')
+        .populate('user', 'name')
+        .sort({ createdAt: 1 })
+        .limit(5)
+        .lean(),
+      UserStats.find().select('user totalXp level').populate('user', 'name').sort({ totalXp: -1 }).limit(5).lean()
+    ]);
+    return {
+      counts: { pendingReviews, activeChallenges, learners, enrollments, certificates, modules, subModules, contents },
+      oldestPending,
+      topLearners
+    };
+  }
+
+  // ---- One content link with the full video / note / MCQ (for editing)
+  async getLinkWithContent(linkId: Id) {
+    if (!Types.ObjectId.isValid(String(linkId))) return null;
+    const link = await SubmoduleContent.findById(linkId).lean<ISubmoduleContent>();
+    if (!link) return null;
+    const content = await contentModelFor(link.contentModel).findById(link.contentId).lean();
+    return { ...link, content };
   }
 
   // ---- Skills

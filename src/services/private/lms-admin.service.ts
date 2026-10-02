@@ -211,6 +211,18 @@ export const updateContent = async (
 // Soft remove: hides it from students; progress already earned stays
 export const removeContent = async (linkId: string) => updateContent(linkId, { isActive: false });
 
+export const getContent = async (linkId: string) => {
+  const link = await LmsAdminDao.getLinkWithContent(linkId);
+  if (!link || !link.content) throw notFound('Content');
+  return link;
+};
+
+// ---------------------------------------------------------------------
+// Courses and dashboard
+// ---------------------------------------------------------------------
+export const listCourses = () => LmsAdminDao.listCourses();
+export const getOverview = () => LmsAdminDao.overview();
+
 // ---------------------------------------------------------------------
 // Skills and badges
 // ---------------------------------------------------------------------

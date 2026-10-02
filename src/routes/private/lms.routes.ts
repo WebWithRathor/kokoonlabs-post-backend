@@ -10,6 +10,8 @@ import { parseQueryParams } from '../../middlewares/query.middleware';
 // clears the course cache, so students see changes on their next load.
 const router = Router();
 
+router.get('/overview', C.getOverview);
+router.get('/courses', C.listCourses);
 router.get('/courses/:courseId/tree', V.validateCourseParam, C.getCourseTree);
 router.post('/courses/:courseId/recalculate', V.validateCourseParam, C.recalculateCourse);
 
@@ -20,6 +22,7 @@ router.post('/sub-modules', V.validateCreateSubModule, C.createSubModule);
 router.put('/sub-modules/:id', V.validateUpdateSubModule, C.updateSubModule);
 router.post('/sub-modules/:id/contents', V.validateAddContent, C.addContent);
 
+router.get('/contents/:linkId', V.validateLinkParam, C.getContent);
 router.put('/contents/:linkId', V.validateUpdateContent, C.updateContent);
 router.delete('/contents/:linkId', V.validateLinkParam, C.removeContent);
 
