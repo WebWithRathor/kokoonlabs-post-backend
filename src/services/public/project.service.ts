@@ -1,6 +1,35 @@
 import ProjectDao from '../../dao/project.dao';
 import { IProject, pagination } from '../../interfaces';
 import ErrorHandler from '../../utils/error-handler';
+import { newBtCode, sanitizeBtLayout } from '../../utils/bt-page';
+
+// The Bluetooth page sent with a save ({ btLayout }): checked, and a public
+// link code the first time the project has a page. The code never changes,
+// so a link a student shared keeps working.
+const btPageFields = (
+  data: Partial<IProject>,
+  existingCode?: string
+): Partial<IProject> => {
+  if (!('btLayout' in data)) return {};
+  const btLayout = sanitizeBtLayout(data.btLayout);
+  return btLayout && !existingCode ? { btLayout, btCode: newBtCode() } : { btLayout };
+};
+
+// A new code that's already taken (very unlikely): try again with another
+const isCodeTaken = (err: unknown) =>
+  !!err && typeof err === 'object' && (err as { code?: number }).code === 11000 &&
+  'btCode' in ((err as { keyPattern?: Record<string, unknown> }).keyPattern ?? {});
+
+const withFreshCode = async <T>(fields: Partial<IProject>, save: (f: Partial<IProject>) => Promise<T>): Promise<T> => {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await save(fields);
+    } catch (err) {
+      if (!fields.btCode || !isCodeTaken(err) || attempt >= 4) throw err;
+      fields = { ...fields, btCode: newBtCode() };
+    }
+  }
+};
 
 // Fields a student may set. Anything else in the body (userId, _id,
 // activeNodesCount, timestamps) is ignored, so a project can't be handed
@@ -30,7 +59,7 @@ export const createProjectService = async (
     activeNodesCount: Array.isArray(data.nodes) ? data.nodes.length : 0
   };
 
-  return await ProjectDao.create(projectData);
+  return await withFreshCode(btPageFields(data), (bt) => ProjectDao.create({ ...projectData, ...bt }));
 };
 
 export const listProjectsService = async (
@@ -90,7 +119,9 @@ export const updateProjectService = async (
     updateData.title = data.title.trim() || 'Untitled Project';
   }
 
-  const updated = await ProjectDao.updateForUser(userId, id, updateData);
+  const updated = await withFreshCode(btPageFields(data, existing.btCode), (bt) =>
+    ProjectDao.updateForUser(userId, id, { ...updateData, ...bt })
+  );
   if (!updated) {
     throw new ErrorHandler(500, 'Failed to update project');
   }

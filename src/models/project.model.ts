@@ -35,6 +35,15 @@ const ProjectSchema = new Schema<IProject>(
     activeNodesCount: {
       type: Number,
       default: 0
+    },
+    // The Bluetooth page layout (see IBtPageLayout), null without a Bluetooth block
+    btLayout: {
+      type: Schema.Types.Mixed,
+      default: null
+    },
+    // Public link code for the Bluetooth page (/bt/<code>); absent until needed
+    btCode: {
+      type: String
     }
   },
   {
@@ -42,6 +51,9 @@ const ProjectSchema = new Schema<IProject>(
     minimize: false
   }
 );
+
+// Each code belongs to one project. Partial: projects without a code don't count.
+ProjectSchema.index({ btCode: 1 }, { unique: true, partialFilterExpression: { btCode: { $type: 'string' } } });
 
 export const Project = mongoose.model<IProject>('Project', ProjectSchema);
 export default Project;

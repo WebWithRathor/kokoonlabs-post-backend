@@ -4,6 +4,9 @@ import projectRoutes from './project.routes';
 import lmsRoutes from './lms.routes';
 import certificateRoutes from './certificate.routes';
 import functionBlockRoutes from './function-block.routes';
+import btPageRoutes from './bt-page.routes';
+import iotStudioRoutes from './iot-studio.routes';
+import controlPageRoutes from './control-page.routes';
 
 const router = Router();
 
@@ -12,5 +15,8 @@ router.use('/projects', projectRoutes);
 router.use('/lms', lmsRoutes);
 router.use('/certificates', certificateRoutes);
 router.use('/function-blocks', functionBlockRoutes);
+router.use('/bt-pages', btPageRoutes);
+router.use('/iot-studio', iotStudioRoutes);
+router.use('/control-pages', controlPageRoutes);
 
 export default router;

@@ -17,7 +17,8 @@ export enum Category {
   LOGIC = 'logic',
   POWER = 'power',
   TOOLS = 'tools',
-  MATH = 'math'
+  MATH = 'math',
+  TIME = 'time'
 }
 
 export interface IBlockField {

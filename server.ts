@@ -1,5 +1,7 @@
 import app from './src/app';
 import { config } from './src/config/config';
+// Checks the IoT Studio settings now: a bad one stops the server here
+import './src/config/iot-studio.config';
 import logger from './src/config/logger';
 import connectDB from './src/db';
 import { startJobs } from './src/jobs/scheduler';

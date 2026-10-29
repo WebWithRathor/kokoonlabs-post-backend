@@ -10,3 +10,5 @@ export * from './lms-progress.interface';
 export * from './lms-rewards.interface';
 export * from './announcement.interface';
 export * from './function-block.interface';
+export * from './iot-board.interface';
+export * from './control-page.interface';

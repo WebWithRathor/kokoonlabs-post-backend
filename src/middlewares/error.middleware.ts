@@ -111,7 +111,7 @@ const errorMiddleware = (
   else {
     // Check if it's already an ErrorHandler with a status code
     const errorHandler = err as ErrorHandler;
-    if (errorHandler.statusCode && errorHandler.statusCode < 500) {
+    if (errorHandler.statusCode && (errorHandler.statusCode < 500 || errorHandler.expose)) {
       // Preserve 4xx errors (like 404 "User not found")
       customError = errorHandler;
       if (errorHandler.errorCode !== 'TEMP_ERROR_CODE') {
@@ -161,7 +161,7 @@ const errorMiddleware = (
 
   // In production, only hide detailed error messages for server errors (5xx)
   // Show meaningful messages for client errors (4xx) like "User not found"
-  if (config.environment === 'production' && statusCode >= 500) {
+  if (config.environment === 'production' && statusCode >= 500 && !customError.expose) {
     customError.message = `Oops! Something unexpected happened on our end. We're on it! Please try again in a few minutes.`;
   }
 
