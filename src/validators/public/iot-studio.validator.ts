@@ -1,6 +1,6 @@
 import { body, param } from 'express-validator';
 import { validateChain } from '../../utils/helper';
-import { IOT_BOARDS, MAX_IOT_VARIABLES } from '../../utils/iot-studio';
+import { CHIP_ID_RE, IOT_BOARDS, MAX_IOT_VARIABLES } from '../../utils/iot-studio';
 
 const boardName = () =>
   body('name')
@@ -31,7 +31,24 @@ export const validateFlash = validateChain([
     .withMessage('Invalid program version'),
   body('variables')
     .isArray({ max: MAX_IOT_VARIABLES })
-    .withMessage(`A program can declare at most ${MAX_IOT_VARIABLES} IoT variables`)
+    .withMessage(`A program can declare at most ${MAX_IOT_VARIABLES} IoT variables`),
+  // The plugged-in ESP32's machine.unique_id() as hex (left out when it couldn't be read)
+  body('chipId')
+    .optional({ values: 'null' })
+    .isString()
+    .withMessage('Invalid chip id')
+    .bail()
+    .customSanitizer((v: string) => v.trim().toLowerCase())
+    .matches(CHIP_ID_RE)
+    .withMessage('Invalid chip id'),
+  // true: move this board to the plugged-in chip (after a chip mismatch)
+  body('replaceChip')
+    .optional()
+    .custom(v => typeof v === 'boolean')
+    .withMessage('replaceChip must be true or false')
+    .bail()
+    .custom((v, { req }) => !v || typeof req.body?.chipId === 'string')
+    .withMessage('Replacing the chip needs the chip id')
 ]);
 
 export const validateSso = validateChain([body('next').optional().isString().isLength({ max: 200 })]);

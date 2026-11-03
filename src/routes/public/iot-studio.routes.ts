@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+  allBoardsStatus,
   boardStatus,
   createBoard,
   getIotConfig,
@@ -28,6 +29,8 @@ router.use(isAuthenticated, requireRole(UserRole.STUDENT));
 
 router.get('/config', getIotConfig);
 router.get('/boards', listBoards);
+// Every board's live status in one request (one IoT Studio call at most)
+router.get('/boards/status', allBoardsStatus);
 router.post('/boards', validateCreateBoard, createBoard);
 router.patch('/boards/:id', validateRenameBoard, renameBoard);
 router.delete('/boards/:id', validateBoardId, removeBoard);

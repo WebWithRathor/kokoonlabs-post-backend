@@ -23,3 +23,16 @@ export const unseal = <T>(key: Buffer, sealed: ISealed): T => {
   const text = Buffer.concat([decipher.update(Buffer.from(sealed.data, 'base64')), decipher.final()]).toString('utf8');
   return JSON.parse(text) as T;
 };
+
+/**
+ * The value back, or null when it can't be read (no value, a changed
+ * IOT_CREDENTIALS_KEY, damaged data). Callers treat null as "nothing kept".
+ */
+export const tryUnseal = <T>(key: Buffer | null, sealed: ISealed | null | undefined): T | null => {
+  if (!key || !sealed) return null;
+  try {
+    return unseal<T>(key, sealed);
+  } catch {
+    return null;
+  }
+};

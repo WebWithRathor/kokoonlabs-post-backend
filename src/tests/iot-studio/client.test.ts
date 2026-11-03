@@ -4,7 +4,11 @@ import { createHmac } from 'crypto';
 import {
   IotStudioError,
   createIotStudioClient,
+  createLimiter,
+  isParallelCreate,
   isRetryable,
+  lmsErrorFor,
+  selfCheckVerdict,
   signRequest,
   studentMessageFor,
   warningMessage
@@ -254,5 +258,207 @@ describe('error mapping', () => {
     assert.match(warningMessage('project_limit_reached_project_not_created'), /project limit/);
     assert.match(warningMessage('variable_limit_reached'), /as many variables/);
     assert.match(warningMessage('something_new'), /something new/);
+  });
+});
+
+describe('IoT Studio client: chips, bulk status, deadlines', () => {
+  it('replaceChip (and rotateCredentials) go in the signed query', async () => {
+    const { client, calls } = make([json(200, {}), json(200, {})]);
+    await client.upsertDevice('kk-esp32s3-7f3k9q2m', { a: 1 }, { replaceChip: true });
+    await client.upsertDevice('kk-esp32s3-7f3k9q2m', { a: 1 }, { rotateCredentials: true, replaceChip: true });
+    assert.equal(calls[0].url, `${BASE}/integrations/lms/devices/kk-esp32s3-7f3k9q2m?replaceChip=true`);
+    assert.equal(calls[1].url, `${BASE}/integrations/lms/devices/kk-esp32s3-7f3k9q2m?rotateCredentials=true&replaceChip=true`);
+    assert.equal(
+      calls[1].headers['X-Kokoon-Signature'],
+      signRequest(SECRET, '1800000000', 'PUT', '/api/v1/integrations/lms/devices/kk-esp32s3-7f3k9q2m?rotateCredentials=true&replaceChip=true', calls[1].body)
+    );
+  });
+
+  it('bulk status is a signed POST with the ids as JSON and a Request-Id', async () => {
+    const { client, calls } = make([json(200, { devices: [], missing: ['kk-a-00000000'] })]);
+    const res = await client.getDevicesStatus<{ missing: string[] }>(['kk-a-00000000', 'kk-b-00000000']);
+    assert.deepEqual(res.data.missing, ['kk-a-00000000']);
+    const [c] = calls;
+    assert.equal(c.method, 'POST');
+    assert.equal(c.url, `${BASE}/integrations/lms/devices/status`);
+    assert.equal(c.body, JSON.stringify({ hardwareIds: ['kk-a-00000000', 'kk-b-00000000'] }));
+    assert.equal(c.headers['Content-Type'], 'application/json');
+    assert.match(c.headers['X-Kokoon-Request-Id'], /^[0-9a-f-]{36}$/);
+    assert.equal(c.headers['X-Kokoon-Signature'], signRequest(SECRET, '1800000000', 'POST', '/api/v1/integrations/lms/devices/status', c.body));
+  });
+
+  it('retries the "registered by a parallel request" 409, not a real other-student 409', async () => {
+    const parallel = errorBody('device_owned_by_other_user', { message: 'This hardware id was registered by a parallel request; retry.' });
+    const { client, calls } = make([json(409, parallel), json(200, { deviceId: 'd1' })]);
+    assert.equal((await client.upsertDevice('kk-esp32s3-7f3k9q2m', {})).status, 200);
+    assert.equal(calls.length, 2);
+    assert.equal(calls[0].headers['X-Kokoon-Request-Id'], calls[1].headers['X-Kokoon-Request-Id']);
+
+    const other = errorBody('device_owned_by_other_user', { message: 'This hardware id is registered to another IoT Studio account.' });
+    const two = make([json(409, other)]);
+    await assert.rejects(two.client.upsertDevice('kk-esp32s3-7f3k9q2m', {}), { code: 'device_owned_by_other_user' });
+    assert.equal(two.calls.length, 1);
+  });
+
+  it('chip errors are not retried and keep the other board id and message', async () => {
+    const { client, calls } = make([
+      json(409, errorBody('chip_in_use', { message: 'Chip bound elsewhere', details: { hardwareId: 'kk-esp32s3-aaaaaaaa' } }))
+    ]);
+    await assert.rejects(client.upsertDevice('kk-esp32s3-7f3k9q2m', {}), (err: IotStudioError) => {
+      assert.equal(err.status, 409);
+      assert.equal(err.code, 'chip_in_use');
+      assert.equal(err.otherHardwareId, 'kk-esp32s3-aaaaaaaa');
+      assert.equal(err.detail, 'Chip bound elsewhere');
+      assert.match(err.studentMessage, /already registered as another board/);
+      return true;
+    });
+    assert.equal(calls.length, 1);
+  });
+
+  it('a deadline caps the per-try timeout and stops retries that would not fit', async () => {
+    let now = 1_800_000_000_000;
+    const sleeps: number[] = [];
+    const fake = fakeFetch([json(503, errorBody('unavailable'), { 'Retry-After': '2' }), json(503, errorBody('unavailable'), { 'Retry-After': '2' })]);
+    const client = createIotStudioClient({
+      baseUrl: BASE,
+      secret: SECRET,
+      fetchImpl: fake.impl,
+      nowMs: () => now,
+      sleep: async ms => {
+        sleeps.push(ms);
+        now += ms;
+      }
+    });
+    // 3.5 s: one 2 s wait fits (1.5 s left), a second one would not
+    await assert.rejects(client.request('PUT', '/devices/kk-esp32s3-7f3k9q2m', { body: {}, deadlineAt: now + 3500 }), { code: 'unavailable' });
+    assert.equal(fake.calls.length, 2);
+    assert.deepEqual(sleeps, [2000]);
+    // Already past the deadline: no call at all
+    await assert.rejects(client.request('GET', '/devices/x', { deadlineAt: now - 1 }), { code: 'timeout' });
+    assert.equal(fake.calls.length, 2);
+  });
+
+  it('a limiter slot is held only while a try is on the wire', async () => {
+    const limiter = createLimiter(1, 5);
+    const seen: number[] = [];
+    const fetchImpl = (async () => {
+      seen.push(limiter.active);
+      return json(200, {});
+    }) as unknown as typeof fetch;
+    const client = createIotStudioClient({ baseUrl: BASE, secret: SECRET, fetchImpl, limiter });
+    await Promise.all([client.getDevice('kk-a-00000000'), client.getDevice('kk-b-00000000'), client.getDevice('kk-c-00000000')]);
+    assert.deepEqual(seen, [1, 1, 1]);
+    assert.equal(limiter.active, 0);
+    assert.equal(limiter.waiting, 0);
+  });
+
+  it('a status poll with a deadline leaves a full limiter\'s queue with "busy" instead of waiting on', async () => {
+    const limiter = createLimiter(1, 5);
+    const hold = await limiter.acquire();
+    const fake = fakeFetch([json(200, { devices: [], missing: [] })]);
+    const client = createIotStudioClient({ baseUrl: BASE, secret: SECRET, fetchImpl: fake.impl, limiter });
+    // 1.05 s deadline: at most 50 ms in the queue (a try needs 1 s left)
+    const started = Date.now();
+    await assert.rejects(client.getDevicesStatus(['kk-a-00000000'], { maxRetries: 0, deadlineAt: Date.now() + 1050 }), { code: 'busy' });
+    await assert.rejects(client.getDevice('kk-a-00000000', { maxRetries: 0, deadlineAt: Date.now() + 1050 }), { code: 'busy' });
+    assert.ok(Date.now() - started < 1000);
+    assert.equal(limiter.waiting, 0);
+    assert.equal(fake.calls.length, 0);
+    hold();
+    // A free slot: the same poll goes through
+    await client.getDevicesStatus(['kk-a-00000000'], { maxRetries: 0, deadlineAt: Date.now() + 5000 });
+    assert.equal(fake.calls.length, 1);
+    assert.equal(limiter.active, 0);
+  });
+});
+
+describe('concurrency limiter', () => {
+  it('runs at most max at once, queues up to maxQueue, fails fast beyond', async () => {
+    const limiter = createLimiter(2, 1);
+    const a = await limiter.acquire();
+    const b = await limiter.acquire();
+    assert.equal(limiter.active, 2);
+    let cGot = false;
+    const c = limiter.acquire().then(r => {
+      cGot = true;
+      return r;
+    });
+    assert.equal(limiter.waiting, 1);
+    await assert.rejects(limiter.acquire(), (err: IotStudioError) => err.code === 'busy' && err.status === 503);
+    a();
+    a(); // releasing twice frees one slot only
+    const release = await c;
+    assert.equal(cGot, true);
+    assert.equal(limiter.active, 2);
+    b();
+    release();
+    assert.equal(limiter.active, 0);
+  });
+
+  it('a waiter gives up with "busy" after its wait limit', async () => {
+    const limiter = createLimiter(1, 10);
+    const hold = await limiter.acquire();
+    await assert.rejects(limiter.acquire(20), { code: 'busy' });
+    await assert.rejects(limiter.acquire(0), { code: 'busy' });
+    assert.equal(limiter.waiting, 0);
+    hold();
+    (await limiter.acquire(20))();
+    assert.equal(limiter.active, 0);
+  });
+});
+
+describe('chip and busy errors for the editor', () => {
+  it('map to distinct LMS codes the editor can tell apart', () => {
+    const mismatch = lmsErrorFor(new IotStudioError(409, 'chip_mismatch', studentMessageFor(409, 'chip_mismatch')));
+    const inUse = lmsErrorFor(new IotStudioError(409, 'chip_in_use', studentMessageFor(409, 'chip_in_use')));
+    assert.deepEqual([mismatch.statusCode, mismatch.errorCode], [409, 'IOT_CHIP_MISMATCH']);
+    assert.deepEqual([inUse.statusCode, inUse.errorCode], [409, 'IOT_CHIP_IN_USE']);
+    assert.match(mismatch.message, /Replace/);
+    assert.notEqual(mismatch.message, inUse.message);
+    assert.equal(lmsErrorFor(new IotStudioError(503, 'busy', 'x')).statusCode, 503);
+    assert.equal(lmsErrorFor(new IotStudioError(409, 'device_owned_by_other_user', 'x')).errorCode, 'IOT_DEVICE_OWNED_BY_OTHER_USER');
+    assert.equal(lmsErrorFor(new IotStudioError(0, 'timeout', 'x')).statusCode, 502);
+    assert.equal(lmsErrorFor(new IotStudioError(409, 'chip_in_use', 'x'), 'own words').message, 'own words');
+  });
+
+  it('parallel-create detection needs the 409, the code and the message', () => {
+    assert.equal(isParallelCreate(409, 'device_owned_by_other_user', 'registered by a parallel request; retry.'), true);
+    assert.equal(isParallelCreate(409, 'device_owned_by_other_user', 'registered to another account'), false);
+    assert.equal(isParallelCreate(422, 'device_owned_by_other_user', 'parallel request'), false);
+    assert.equal(isRetryable(409, 'device_owned_by_other_user', 'a parallel request'), true);
+  });
+});
+
+describe('startup self-check verdict', () => {
+  const W = 'http://iot.test:4004/api/v1';
+  const e = (status: number, code: string, detail?: string) => new IotStudioError(status, code, 'x', undefined, undefined, detail);
+
+  it('404 not_found for the health-check board means OK', () => {
+    assert.deepEqual(selfCheckVerdict(e(404, 'not_found', 'No LMS device with this hardware id.'), W), { ok: true, message: `IoT Studio integration OK (${W})` });
+    assert.equal(selfCheckVerdict(null, W).ok, true);
+  });
+
+  it('names the precise problem', () => {
+    const msg = (err: unknown) => {
+      const v = selfCheckVerdict(err, W);
+      assert.equal(v.ok, false);
+      return v.message;
+    };
+    assert.match(msg(e(404, 'ROUTE_NOT_FOUND')), /must include IoT Studio's API base path/);
+    assert.match(msg(e(404, 'unknown_error')), /API base path/);
+    assert.match(msg(e(404, 'not_found', 'No LMS integration endpoint GET /x.')), /no LMS device endpoint/);
+    assert.match(msg(e(401, 'invalid_signature')), /LMS_API_SECRET must be exactly the same/);
+    assert.match(msg(e(401, 'stale_timestamp')), /clock/);
+    assert.match(msg(e(503, 'integration_disabled')), /switched off/);
+    assert.match(msg(e(0, 'network_error')), /could not reach .*host and port/);
+    assert.match(msg(e(0, 'timeout')), /could not reach/);
+    assert.match(msg(e(500, 'internal_error')), /answered 500/);
+    assert.match(msg(new Error('boom')), /check failed/);
+  });
+
+  it('never puts the secret in the message', () => {
+    for (const err of [e(401, 'invalid_signature'), e(0, 'network_error'), e(404, 'x')]) {
+      assert.doesNotMatch(selfCheckVerdict(err, W).message, /test-secret/);
+    }
   });
 });

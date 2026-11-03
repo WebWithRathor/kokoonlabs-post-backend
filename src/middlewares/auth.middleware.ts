@@ -4,10 +4,10 @@ import asyncHandler from '../utils/async-handler';
 import { redis } from '../utils/redis';
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
-import bcrypt from 'bcryptjs';
 import { IUser, RoleHierarchy, UserRole } from '../interfaces/user.interface';
 import ResponseHandler from '../utils/response-handler';
 import { generateUserRedisKey } from '../utils/auth.util';
+import { refreshTokenChecker } from '../utils/refresh-token-check';
 import { ERROR_CODES } from '../constants/error-codes';
 
 export const isAuthenticated = asyncHandler(
@@ -38,7 +38,8 @@ export const isAuthenticated = asyncHandler(
 
     const userData = JSON.parse(user) as IUser;
     const { refreshToken, password, ...userDataWithoutToken } = userData;
-    const isValid = await bcrypt.compare(
+    // bcrypt, or a match remembered for a few minutes (see refresh-token-check)
+    const isValid = await refreshTokenChecker.check(
       incomingRefreshToken,
       refreshToken as string
     );
@@ -118,7 +119,7 @@ export const optionalAuthentication = asyncHandler(
       const userData = JSON.parse(user) as IUser;
       const { refreshToken, password, ...userDataWithoutToken } = userData;
 
-      const isValid = await bcrypt.compare(
+      const isValid = await refreshTokenChecker.check(
         incomingRefreshToken,
         refreshToken as string
       );

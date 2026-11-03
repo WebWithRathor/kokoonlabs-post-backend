@@ -9,10 +9,12 @@ dotenvConfig({ quiet: true });
 // Everything here stays on the server. Only the two URLs may reach a browser.
 //
 //   IOT_INTEGRATION_ENABLED   "true" to switch the integration on
-//   IOT_STUDIO_API_URL        IoT Studio API base, e.g. http://localhost:4000/api/v1
-//   IOT_STUDIO_APP_URL        IoT Studio app, e.g. http://localhost:5173
-//   LMS_SSO_SECRET            HS256 key for SSO tokens (≥48 chars)
-//   LMS_API_SECRET            HMAC key for server-to-server calls (≥48 chars, different)
+//   IOT_STUDIO_API_URL        IoT Studio API base INCLUDING its base path, e.g. http://localhost:4004/api/v1
+//                             (IoT Studio's PORT + API_BASE_PATH; signatures cover the path)
+//   IOT_STUDIO_APP_URL        IoT Studio app (its FRONTEND_URL), e.g. http://localhost:5180
+//   LMS_SSO_SECRET            HS256 key for SSO tokens (≥48 chars, same as IoT Studio's)
+//   LMS_API_SECRET            HMAC key for server-to-server calls (≥48 chars, different, same as IoT Studio's)
+// The server checks the URL and LMS_API_SECRET once at start (iotStudioSelfCheck) and logs the result.
 //   IOT_CREDENTIALS_KEY       32 bytes (64 hex chars or base64) encrypting boards' MQTT passwords
 //   IOT_STUDIO_MQTT_CA_FILE   optional: PEM file of the broker's CA, for boards on a TLS broker
 

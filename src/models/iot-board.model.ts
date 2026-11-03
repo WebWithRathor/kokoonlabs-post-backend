@@ -1,9 +1,10 @@
 import mongoose, { Schema } from 'mongoose';
 import { IIotBoard } from '../interfaces/iot-board.interface';
-import { IOT_BOARDS, HARDWARE_ID_RE } from '../utils/iot-studio';
+import { IOT_BOARDS, HARDWARE_ID_RE, CHIP_ID_RE } from '../utils/iot-studio';
 
 const sealedSchema = new Schema({ iv: String, tag: String, data: String }, { _id: false });
 const programSchema = new Schema({ programId: String, name: String, version: String }, { _id: false });
+const brokerSchema = new Schema({ host: String, port: Number, tls: Boolean }, { _id: false });
 
 const IotBoardSchema = new Schema<IIotBoard>(
   {
@@ -11,10 +12,16 @@ const IotBoardSchema = new Schema<IIotBoard>(
     name: { type: String, required: true, trim: true, maxlength: 60 },
     board: { type: String, required: true, enum: IOT_BOARDS },
     hardwareId: { type: String, required: true, match: HARDWARE_ID_RE, immutable: true },
+    chipId: { type: String, default: null, match: CHIP_ID_RE },
     deviceId: { type: String, default: null },
     studioUrl: { type: String, default: null },
     // Never returned by default: only the flash route reads it
     credentials: { type: sealedSchema, default: null, select: false },
+    topicPrefix: { type: String, default: null },
+    broker: { type: brokerSchema, default: null },
+    projectId: { type: String, default: null },
+    syncHash: { type: String, default: null },
+    lastSyncedAt: { type: Date, default: null },
     lastProgram: { type: programSchema, default: null },
     lastVariables: { type: [Schema.Types.Mixed] as any, default: [] },
     lastFlashedAt: { type: Date, default: null }
