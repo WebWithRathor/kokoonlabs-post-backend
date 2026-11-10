@@ -7,6 +7,7 @@ import functionBlockRoutes from './function-block.routes';
 import btPageRoutes from './bt-page.routes';
 import iotStudioRoutes from './iot-studio.routes';
 import controlPageRoutes from './control-page.routes';
+import aiRoutes from './ai.routes';
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.use('/function-blocks', functionBlockRoutes);
 router.use('/bt-pages', btPageRoutes);
 router.use('/iot-studio', iotStudioRoutes);
 router.use('/control-pages', controlPageRoutes);
+router.use('/ai', aiRoutes);
 
 export default router;
