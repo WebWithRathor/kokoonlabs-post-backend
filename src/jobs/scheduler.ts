@@ -4,6 +4,7 @@ import { emailConfigured } from '../utils/email';
 import { istDay } from '../utils/ist-date';
 import { runStreakReminder } from './streak-reminder.job';
 import { runEmailWorker } from './email.job';
+import LmsEnrollmentDao from '../dao/lms-enrollment.dao';
 
 // Cron schedules in IST. Safe to run on several servers at once: reminders
 // are deduplicated per day and emails are claimed before sending. Turn off
@@ -15,6 +16,8 @@ const TIMEZONE = 'Asia/Kolkata';
 // succeeds, the later ones that day are skipped.
 const STREAK_REMINDER_CRON = '0 20-23 * * *';
 const EMAIL_WORKER_CRON = '* * * * *';
+// Course access past its 365 days (set when a kit is activated) closes
+const EXPIRE_ACCESS_CRON = '7 * * * *';
 
 let lastReminderDay: string | null = null;
 let tasks: ScheduledTask[] = [];
@@ -38,6 +41,15 @@ const emailWorkerTask = async () => {
   }
 };
 
+const expireAccessTask = async () => {
+  try {
+    const n = await LmsEnrollmentDao.expireEnded(new Date());
+    if (n) logger.info(`Course access ended for ${n} enrollment(s)`);
+  } catch (err) {
+    logger.error('Expiring course access failed', { err });
+  }
+};
+
 export const startJobs = (): void => {
   if (process.env.ENABLE_JOBS === 'false') {
     logger.info('Background jobs disabled (ENABLE_JOBS=false)');
@@ -48,9 +60,10 @@ export const startJobs = (): void => {
   const options = { timezone: TIMEZONE, noOverlap: true, unref: true };
   tasks = [
     cron.schedule(STREAK_REMINDER_CRON, streakReminderTask, { ...options, name: 'streak-reminder' }),
-    cron.schedule(EMAIL_WORKER_CRON, emailWorkerTask, { ...options, name: 'email-worker' })
+    cron.schedule(EMAIL_WORKER_CRON, emailWorkerTask, { ...options, name: 'email-worker' }),
+    cron.schedule(EXPIRE_ACCESS_CRON, expireAccessTask, { ...options, name: 'expire-course-access' })
   ];
-  logger.info('Background jobs started: 8 PM IST streak reminder, email worker every minute');
+  logger.info('Background jobs started: 8 PM IST streak reminder, email worker every minute, course access expiry hourly');
 };
 
 export const stopJobs = async (): Promise<void> => {

@@ -5,10 +5,8 @@ import Submission from '../models/submission.model';
 import Challenge from '../models/challenge.model';
 import Certificate from '../models/certificate.model';
 import Notification from '../models/notification.model';
-import {
-  IEnrolledCourseLink,
-  IEnrolledCourseLinkStatus
-} from '../interfaces/enrolled-course-link.interface';
+import { IEnrolledCourseLink } from '../interfaces/enrolled-course-link.interface';
+import { openEnrollmentFilter } from './lms-enrollment.dao';
 import { IUserSkillLevel } from '../interfaces/lms-progress.interface';
 import { IChallenge, ICertificate, INotification, ISubmission } from '../interfaces/lms-rewards.interface';
 
@@ -17,8 +15,8 @@ type Id = Types.ObjectId | string;
 // Read-mostly queries behind the home screen, profile and bell icon
 export class LmsDashboardDao {
   async listActiveEnrollments(userId: Id): Promise<IEnrolledCourseLink[]> {
-    return await EnrolledCourseLink.find({ userId, status: IEnrolledCourseLinkStatus.SUCCESS })
-      .select('courseId courseTitle courseThumbnail courseType lastViewedContent lastActivity completedAt purchasedDate')
+    return await EnrolledCourseLink.find({ userId, ...openEnrollmentFilter() })
+      .select('courseId courseTitle courseThumbnail courseType lastViewedContent lastActivity completedAt purchasedDate expiresAt')
       .sort({ lastActivity: -1, createdAt: -1 })
       .lean<IEnrolledCourseLink[]>();
   }

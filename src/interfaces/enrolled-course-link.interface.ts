@@ -17,7 +17,9 @@ export enum IEnrolledCourseLinkStatus {
   SUCCESS = 'success',
   FAILED = 'failed',
   BLOCKED = 'blocked',
-  REMOVED = 'removed'
+  REMOVED = 'removed',
+  // The access period ended (expiresAt passed)
+  EXPIRED = 'expired'
 }
 
 export interface IEnrolledCourseLink extends Document {
@@ -31,6 +33,11 @@ export interface IEnrolledCourseLink extends Document {
   isSelfPaced?: boolean;
   selfPacedEnabledAt?: Date;
   purchasedDate: Date;
+  /** Access ends at this time (none: no end date). */
+  expiresAt?: Date | null;
+  /** When a kit code last started (or renewed) this access, and that kit's order. */
+  activatedAt?: Date;
+  orderId?: mongoose.Types.ObjectId | string;
   /** Resume-learning: the content this user last opened in the course. */
   lastViewedContent?: ILastViewedContent;
   lastActivity?: Date;

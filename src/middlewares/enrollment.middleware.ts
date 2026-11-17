@@ -13,6 +13,17 @@ export const requireEnrollment = asyncHandler(async (req: Request, _res: Respons
 
   const enrollment = await LmsEnrollmentDao.findActive(String(req.user._id), courseId);
   if (!enrollment) {
+    const ended = await LmsEnrollmentDao.findEnded(String(req.user._id), courseId);
+    if (ended) {
+      const on = ended.expiresAt
+        ? ` on ${new Date(ended.expiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })}`
+        : '';
+      throw new ErrorHandler({
+        statusCode: 403,
+        message: `Your access to this course ended${on}. Activate a new kit to continue where you left off.`,
+        errorCode: 'ACCESS_EXPIRED'
+      });
+    }
     throw new ErrorHandler({ statusCode: 403, message: 'You are not enrolled in this course.', errorCode: 'NOT_ENROLLED' });
   }
   req.lmsEnrollment = enrollment;

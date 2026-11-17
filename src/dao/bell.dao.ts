@@ -2,8 +2,8 @@ import { Types } from 'mongoose';
 import Notification from '../models/notification.model';
 import Announcement from '../models/announcement.model';
 import EnrolledCourseLink from '../models/enrollCourseLink.model';
-import { IEnrolledCourseLinkStatus } from '../interfaces/enrolled-course-link.interface';
 import { IAnnouncement } from '../interfaces/announcement.interface';
+import { openEnrollmentFilter } from './lms-enrollment.dao';
 
 type Id = Types.ObjectId | string;
 const oid = (id: Id) => new Types.ObjectId(String(id));
@@ -31,7 +31,7 @@ export interface BellItem {
 // paged feed, newest first ($unionWith, MongoDB 4.4+).
 export class BellDao {
   async audienceOf(userId: Id): Promise<Audience> {
-    const links = await EnrolledCourseLink.find({ userId, status: IEnrolledCourseLinkStatus.SUCCESS })
+    const links = await EnrolledCourseLink.find({ userId, ...openEnrollmentFilter() })
       .select('courseId batchId')
       .lean();
     return {

@@ -37,6 +37,18 @@ const enrolledCourseLinkSchema = new Schema<IEnrolledCourseLink>(
       type: Date,
       default: Date.now
     },
+    // Access ends at this time (none: no end date); renewed by a new kit code
+    expiresAt: {
+      type: Date,
+      default: null
+    },
+    activatedAt: {
+      type: Date
+    },
+    orderId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Order'
+    },
     status: {
       type: String,
       enum: Object.values(IEnrolledCourseLinkStatus),
@@ -89,6 +101,7 @@ enrolledCourseLinkSchema.index({ userId: 1, courseId: 1 }); // findByUserAndCour
 enrolledCourseLinkSchema.index({ courseId: 1 });
 enrolledCourseLinkSchema.index({ batchId: 1 });
 enrolledCourseLinkSchema.index({ status: 1 }); // Index for status queries
+enrolledCourseLinkSchema.index({ status: 1, expiresAt: 1 }); // Expiry job
 
 export const EnrolledCourseLink = mongoose.model<IEnrolledCourseLink>(
   'EnrolledCourseLink',
