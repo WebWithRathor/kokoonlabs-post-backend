@@ -25,6 +25,7 @@ export interface StructContent {
 export interface StructSubModule {
   _id: Types.ObjectId;
   title: string;
+  description: string;
   order: number;
   deadlineDays: number | null;
   skills: ISubModuleSkill[];
@@ -86,7 +87,7 @@ export class CourseStructureDao {
                 as: 'contents'
               }
             },
-            { $project: { title: 1, order: 1, deadlineDays: 1, skills: 1, createdAt: 1, contents: 1 } }
+            { $project: { title: 1, description: 1, order: 1, deadlineDays: 1, skills: 1, createdAt: 1, contents: 1 } }
           ],
           as: 'subModules'
         }

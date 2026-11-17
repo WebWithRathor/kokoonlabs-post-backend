@@ -83,6 +83,7 @@ export const getSubModule = async (ctx: LearnerContext, subModuleId: string) => 
   return {
     id: subModuleId,
     title: located.subModule.title,
+    description: located.subModule.description ?? '',
     moduleId: String(located.module._id),
     deadlineAt: entry.deadlineAt,
     completed: !!entry.completedAt,
